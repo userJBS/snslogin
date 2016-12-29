@@ -1,7 +1,7 @@
 # SNS Login 시작하기전..
 * sns로그인 springboot + 롬복 + 스프링 RestTemplate 사용해서 최대한 간편한 sns 서비스
 
-* Kakao 로그인 완성
+* Kakao 로그인 완성 [2016.12.30 금요일]
 
 * Naver 로그인 만드는중..
 
