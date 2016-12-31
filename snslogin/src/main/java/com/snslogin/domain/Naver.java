@@ -8,17 +8,25 @@ import lombok.Data;
 @Data
 public class Naver {
 
-	private NResult result;
-	private NResponse response;
+	private Result result;
+	private Account response;
 
 	@Data
-	public static class NResult {
+	public static class Token {
+		private String access_token;
+		private String refresh_token;
+		private String token_type;
+		private String expires_in;
+	}
+
+	@Data
+	public static class Result {
 		private String resultcode;
 		private String message;
 	}
 
 	@Data
-	public static class NResponse {
+	public static class Account {
 		private String enc_id;
 		private String nickname;
 		private String id;

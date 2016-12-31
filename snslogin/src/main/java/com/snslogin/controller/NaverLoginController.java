@@ -3,63 +3,77 @@ package com.snslogin.controller;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.client.RestTemplate;
+
+import com.snslogin.domain.Naver;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Controller
+@Slf4j
 public class NaverLoginController {
 
-	// 애플리케이션 등록 후 발급받은 클라이언트 아이디
+	// 애플리케이션 등록 후 발급받은 클라이언트 아이디 [수정 O ]
 	private final String clientId = "9NEoJO6uGCvKGA8S62V2";
-	// 네이버 로그인 인증의 결과를 전달받을 콜백 URL(URL 인코딩).
-	private final String redirectUri = "http://localhost:7070/redirectUri";
-	// 애플리케이션이 생성한 상태 토큰
-	private final String CurrentState = generateState();
-	// 클라이언트 시크릿
+	// 애플리케이션이 생성한 상태 토큰 [수정 X ]
+	private final String CurrentState = stateToken();
+	// 클라이언트 시크릿 [수정 O ]
 	private final String clientSecret = "0451rG9YjH";
-	// 로그인 했을때 받는 인증 코드
-	private String certificationCode = "";
+	// 네이버 로그인 인증의 결과를 전달받을 콜백 URL(URL 인코딩) [수정 X ]
+	private String redirectURL = "";
+	// [수정 O ]
+	private final String RedirectURI = "/redirect_uri_naver";
 
-	@GetMapping(value = "/redirectUri")
-	public String redirectUri(String code, String state) {
-		// certificationCode = code;
-		System.out.println("!redirectUri : " + code);
-		// System.out.println("!redirectUri : " + state);
-		// System.out.println("!redirectUri : " + state);
+	// 사용자 토큰 요청할 URL [수정 X ]
+	private final String tokenURL = "https://nid.naver.com/oauth2.0/token?"
+			+ "client_id={clientId}&client_secret={clientSecret}&grant_type=authorization_code&"
+			+ "state={state}&code={certificationCode}";
 
-		// CSRF 방지를 위한 상태 토큰 검증
-		// 세션 또는 별도의 저장 공간에 저장된 상태 토큰과 콜백으로 전달받은 state 파라미터의 값이 일치해야 함
+	// 요청할때 사용할 객체.
+	private RestTemplate restTemplate = new RestTemplate();
 
-		// 콜백 응답에 state 파라미터의 값 과 저장 공간에 state값 비교
-		// if (!state.equals(CurrentState)) {
-		// return RESPONSE_UNAUTHORIZED; // 401 unauthorized
-		// } else {
-		// Return RESPONSE_SUCCESS; // 200 success
-		// }
+	// 로그인 요청 성공후 콜백 되는 URL
+	@GetMapping("redirect_uri_naver")
+	// code : 로그인 요청 성공후 얻은 값
+	// state : 로그인 요청이 들어왔을때 생성되는 stateToken()메서드의 값
+	public String login2(final String code, final String state) {
 
-		return "index";
+		Naver.Token naver = restTemplate.getForObject(tokenURL, Naver.Token.class, clientId, clientSecret, state, code);
+		log.info("[NaverLogin] [토큰 접근] [얻어온 정보 : {}]", naver);
+
+		HttpHeaders headers = new HttpHeaders();
+		// Authorization 헤더 값추가해서
+		headers.add("Authorization", "Bearer " + naver.getAccess_token());
+		final String findByUserUrl = "https://openapi.naver.com/v1/nid/me";
+		// 발급 받은 사용자 토큰을 사용해서 네이버에 정보 요청
+		ResponseEntity<Naver> naverEntity = restTemplate.exchange(findByUserUrl, HttpMethod.GET,
+				new HttpEntity<>(headers), Naver.class);
+		log.info("[NaverLogin] [로그인한 사용자 정보 : {}]", naverEntity.getBody().getResponse());
+
+		return "redirect:/";
 	}
 
-	// 2차 접근 토큰 발급 요청
-	@GetMapping(value = "/login2")
-	public String login2() {
-		System.out.println("@login2@ : " + CurrentState);
-		return String.format(
-				"redirect:https://nid.naver.com/oauth2.0/token?client_id=%s&client_secret=%s&grant_type=authorization_code&state=%s&code=%s",
-				clientId, clientSecret, CurrentState, certificationCode);
-	}
+	// 로그인 요청
+	@GetMapping("naverlogin")
+	public String login(HttpServletRequest request) {
+		// 인증의 결과를 전달받을 콜백 URL 얻어 온다. ( 응답 데이터 : http://Host/redirecturikakao )
+		redirectURL = request.getRequestURL().toString().replace(request.getServletPath(), RedirectURI);
 
-	// 1차 로그인 요청
-	@GetMapping(value = "/login")
-	public String login() {
-		System.out.println("#login : " + CurrentState);
 		return String.format(
 				"redirect:https://nid.naver.com/oauth2.0/authorize?client_id=%s&response_type=code&redirect_uri=%s&state=%s",
-				clientId, redirectUri, CurrentState);
+				clientId, redirectURL, CurrentState);
 	}
 
 	// 상태 토큰으로 사용할 랜덤 문자열 생성
-	public String generateState() {
+	public String stateToken() {
 		SecureRandom random = new SecureRandom();
 		return new BigInteger(130, random).toString(32);
 	}
