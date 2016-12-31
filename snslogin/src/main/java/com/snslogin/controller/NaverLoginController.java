@@ -22,10 +22,10 @@ public class NaverLoginController {
 
 	@GetMapping(value = "/redirectUri")
 	public String redirectUri(String code, String state) {
-		//certificationCode = code;
+		// certificationCode = code;
 		System.out.println("!redirectUri : " + code);
-		//System.out.println("!redirectUri : " + state);
-		//System.out.println("!redirectUri : " + state);
+		// System.out.println("!redirectUri : " + state);
+		// System.out.println("!redirectUri : " + state);
 
 		// CSRF 방지를 위한 상태 토큰 검증
 		// 세션 또는 별도의 저장 공간에 저장된 상태 토큰과 콜백으로 전달받은 state 파라미터의 값이 일치해야 함

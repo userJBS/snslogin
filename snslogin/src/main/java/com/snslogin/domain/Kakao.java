@@ -1,4 +1,4 @@
-package com.example.domain;
+package com.snslogin.domain;
 
 import lombok.Data;
 

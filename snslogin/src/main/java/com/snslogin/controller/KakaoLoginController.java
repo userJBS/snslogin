@@ -8,13 +8,14 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
-import com.example.domain.Kakao;
+import com.snslogin.domain.Kakao;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -48,16 +49,23 @@ public class KakaoLoginController {
 		// 요청할때 사용할 객체.
 		RestTemplate restTemplate = new RestTemplate();
 
+		// 사용자 토큰 요청할 URL
+		final String tokenUrl = "https://kauth.kakao.com/oauth/token?"
+				+ "grant_type=authorization_code&client_id={appKey}&redirect_uri={redirectUri}&code={authorizeCode}";
+
 		// 사용자 토큰 요청
-		Kakao.Token kakaoToken = restTemplate.getForObject(requestTokenURL(), Kakao.Token.class);
+		Kakao.Token kakaoToken = restTemplate.getForObject(tokenUrl, Kakao.Token.class, appKey, redirectUri,
+				authorizeCode);
 
 		// 발급 받은 사용자 토큰을 사용해서 카카오 정보 요청
 		HttpHeaders headers = new HttpHeaders();
 		// Authorization 헤더 값추가해서
 		headers.add("Authorization", "Bearer " + kakaoToken.getAccess_token());
-		String uri = "https://kapi.kakao.com/v1/user/me";
-		ResponseEntity<Kakao.Account> responseEntity = restTemplate.exchange(uri, HttpMethod.GET,
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		final String findByUserUrl = "https://kapi.kakao.com/v1/user/me";
+		ResponseEntity<Kakao.Account> responseEntity = restTemplate.exchange(findByUserUrl, HttpMethod.GET,
 				new HttpEntity<>(headers), Kakao.Account.class);
+
 		log.info("[Kakaologin] [로그인한 사용자 정보] [{}]", responseEntity.getBody());
 
 		return "redirect:/";
