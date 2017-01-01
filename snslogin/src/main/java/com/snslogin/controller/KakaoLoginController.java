@@ -30,7 +30,7 @@ public class KakaoLoginController {
 	// 인증의 결과를 전달받을 콜백 URL ( 로그인 요청을 처리할때 콜백 URI 값과 합쳐진다) [수정 X ]
 	private String redirectURL = "";
 	// 인증의 결과를 전달받을 콜백 URI . [ 수정 O (카카오 홈페이지에 설정한 콜백 주소) ]
-	private final String RedirectURI = "/redirecturikakao";
+	private final String RedirectURI = "/redirectkakao";
 	// 사용자 토큰 요청할 URL [수정 X ]
 	private final String tokenURL = "https://kauth.kakao.com/oauth/token?"
 			+ "grant_type=authorization_code&client_id={appKey}&redirect_uri={redirectUri}&code={authorizeCode}";
@@ -38,7 +38,7 @@ public class KakaoLoginController {
 	private RestTemplate restTemplate = new RestTemplate();
 
 	// 로그인 요청 성공후 콜백 되는 URL
-	@GetMapping("/redirecturikakao")
+	@GetMapping(RedirectURI)
 	// 로그인 요청 성공후 얻은 code(토큰)값
 	public String redirectUri(final String code) {
 

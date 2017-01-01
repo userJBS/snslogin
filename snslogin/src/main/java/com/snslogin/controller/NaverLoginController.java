@@ -30,7 +30,7 @@ public class NaverLoginController {
 	// 네이버 로그인 인증의 결과를 전달받을 콜백 URL(URL 인코딩) [수정 X ]
 	private String redirectURL = "";
 	// [수정 O ]
-	private final String RedirectURI = "/redirect_uri_naver";
+	private final String RedirectURI = "/redirectnaver";
 
 	// 사용자 토큰 요청할 URL [수정 X ]
 	private final String tokenURL = "https://nid.naver.com/oauth2.0/token?"
@@ -41,7 +41,7 @@ public class NaverLoginController {
 	private RestTemplate restTemplate = new RestTemplate();
 
 	// 로그인 요청 성공후 콜백 되는 URL
-	@GetMapping("redirect_uri_naver")
+	@GetMapping(RedirectURI)
 	// code : 로그인 요청 성공후 얻은 값
 	// state : 로그인 요청이 들어왔을때 생성되는 stateToken()메서드의 값
 	public String login2(final String code, final String state) {
