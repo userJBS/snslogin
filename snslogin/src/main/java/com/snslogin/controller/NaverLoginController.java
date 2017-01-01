@@ -66,6 +66,8 @@ public class NaverLoginController {
 	public String login(HttpServletRequest request) {
 		// 인증의 결과를 전달받을 콜백 URL 얻어 온다. ( 응답 데이터 : http://Host/redirecturikakao )
 		redirectURL = request.getRequestURL().toString().replace(request.getServletPath(), RedirectURI);
+		
+		log.info("[NaverLogin] [로그인을 요청한 클라이언트 정보] [url : {}], [ip : {}]", redirectURL, request.getRemoteAddr());
 
 		return String.format(
 				"redirect:https://nid.naver.com/oauth2.0/authorize?client_id=%s&response_type=code&redirect_uri=%s&state=%s",
